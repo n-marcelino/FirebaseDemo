@@ -1,73 +1,66 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { collection, addDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { useRef, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 // styles
-import './create.css';
+import './create.css'
+import {addArticle, getArticle, updateArticle} from "../services/articleService";
 
-export default function FormArticle() {
-  const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
-  const [description, setDescription] = useState('');
-  const [isEditMode, setIsEditMode] = useState(false);
-
-  const navigate = useNavigate();
-  const { id } = useParams(); // Get the article ID from the URL
+export default function Create() {
+  const titleRef = useRef()
+  const authorRef = useRef()
+  const descriptionRef = useRef()
+  
+  const navigate = useNavigate()
+  
+  const { urlId } = useParams();
 
   useEffect(() => {
-    if (id) {
-      const fetchArticle = async () => {
-        const docRef = doc(db, 'articles', id);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const article = docSnap.data();
-          setTitle(article.title);
-          setAuthor(article.author);
-          setDescription(article.description);
-          setIsEditMode(true);
-        } else {
-          console.log('No such document!');
+    if(urlId){
+      getArticle(urlId).then((snapshot)=>{
+        const article = snapshot.data();
+        if(article){
+          titleRef.current.value = article.title;
+          descriptionRef.current.value = article.description;
+          authorRef.current.value = article.author;
+        }else{
+          navigate('/')
         }
-      };
-      fetchArticle();
+        
+      })     
     }
-  }, [id]);
+  },[]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const article = { title, author, description };
-    const ref = collection(db, 'articles');
-
-    if (isEditMode) {
-      const docRef = doc(db, 'articles', id);
-      await updateDoc(docRef, article);
-    } else {
-      await addDoc(ref, article);
+    e.preventDefault()
+    const article = {title: titleRef.current.value, author: authorRef.current.value, description: descriptionRef.current.value};
+    if(urlId){
+      await updateArticle(urlId,article)
+    }else{
+      await addArticle(article)
     }
 
-    navigate('/');
-  };
+    navigate('/')
+  } 
+
 
   return (
     <div className="create">
-      <h2 className="page-title">{isEditMode ? 'Edit Article' : 'Add a New Article'}</h2>
+      <h2 className="page-title">  Add a New Article </h2>
       <form onSubmit={handleSubmit}>
+
         <label>
           <span>Title:</span>
-          <input
+          <input 
             type="text"
-            onChange={(e) => setTitle(e.target.value)}
-            value={title}
+            ref={titleRef}
             required
           />
         </label>
-
+        
         <label>
           <span>Author:</span>
-          <input
+          <input 
             type="text"
-            onChange={(e) => setAuthor(e.target.value)}
-            value={author}
+            ref={authorRef}
             required
           />
         </label>
@@ -75,8 +68,7 @@ export default function FormArticle() {
         <label>
           <span>Description:</span>
           <textarea
-            onChange={(e) => setDescription(e.target.value)}
-            value={description}
+            ref={descriptionRef}
             required
           />
         </label>
@@ -84,5 +76,5 @@ export default function FormArticle() {
         <button className="btn">submit</button>
       </form>
     </div>
-  );
+  )
 }
