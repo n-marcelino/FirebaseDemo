@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
-import {getDocs, collection, deleteDoc, doc, onSnapshot} from 'firebase/firestore';
-import {db} from '../firebase/config'
-import { useEffect,useState } from 'react';
+import { getDocs, collection, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase/config'
+import { useEffect, useState } from 'react';
 import DeleteIcon from '../assets/delete.svg'
+import EditIcon from '../assets/edit.svg'
 
 // styles
 import './Home.css'
@@ -14,48 +15,54 @@ export default function Home() {
   useEffect(() => {
     const ref = collection(db, 'articles');
 
-    onSnapshot(ref, (snapshot)=>{
-        console.log(snapshot);
-        let results = []
-         snapshot.docs.forEach(doc => {
-           results.push({id: doc.id, ...doc.data()});
-         });
-        setArticles(results);
-      })
+    onSnapshot(ref, (snapshot) => {
+      console.log(snapshot);
+      let results = []
+      snapshot.docs.forEach(doc => {
+        results.push({ id: doc.id, ...doc.data() });
+      });
+      setArticles(results);
+    })
 
     getDocs(ref)
-      .then((snapshot)=>{
+      .then((snapshot) => {
         let results = []
         console.log(snapshot)
         snapshot.docs.forEach(doc => {
-          results.push({id: doc.id, ...doc.data()});
+          results.push({ id: doc.id, ...doc.data() });
         });
         setArticles(results);
-      })    
-  },[])
+      })
+  }, [])
 
-  
+
   const handleDelete = async (id) => {
     const ref = doc(db, 'articles', id)
-      //loading = true
+    //loading = true
     deleteDoc(ref).then(
-        //loading false;
+      //loading false;
     );
   }
 
   return (
     <div className="home">
-      <h2>Articles</h2>      
+      <h2>Articles</h2>
       {articles && articles.map(article => (
         <div key={article.id} className="card">
           <h3>{article.title}</h3>
           <p>Written by {article.author}</p>
           <Link to={`/articles/${article.id}`}>Read More...</Link>
-          <img 
+          <img
             className="icon"
             onClick={() => handleDelete(article.id)}
-            src={DeleteIcon} alt="delete icon" 
+            src={DeleteIcon} alt="delete icon"
           />
+          <Link to={`/edit/${article.id}`}>
+            <img
+              className="icon"
+              src={EditIcon} alt="edit icon"
+            />
+          </Link>
         </div>
       ))}
     </div>
