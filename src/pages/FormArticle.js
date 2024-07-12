@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 // styles
 import './create.css'
@@ -12,6 +12,7 @@ export default function Create() {
   const navigate = useNavigate()
   
   const { urlId } = useParams();
+  const [isEditMode, setIsEditMode] = useState(false)
 
   useEffect(() => {
     if(urlId){
@@ -21,6 +22,7 @@ export default function Create() {
           titleRef.current.value = article.title;
           descriptionRef.current.value = article.description;
           authorRef.current.value = article.author;
+          setIsEditMode(true)
         }else{
           navigate('/')
         }
@@ -44,7 +46,7 @@ export default function Create() {
 
   return (
     <div className="create">
-      <h2 className="page-title">  Add a New Article </h2>
+      <h2 className="page-title">  {isEditMode ? 'Edit Article': 'Add a New Article' } </h2>
       <form onSubmit={handleSubmit}>
 
         <label>
